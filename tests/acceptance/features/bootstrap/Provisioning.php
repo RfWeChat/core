@@ -1331,6 +1331,52 @@ trait Provisioning {
 	}
 
 	/**
+	 * @When /^the user "([^"]*)" sends a user creation request for user "([^"]*)" password "([^"]*)" using the provisioning API$/
+	 *
+	 * @param string $user
+	 * @param string $userToCreate
+	 * @param string $password
+	 *
+	 * @return void
+	 * @throws Exception
+	 */
+	public function userSendsUserCreationRequestUsingTheProvisioningApi($user, $userToCreate, $password) {
+		$userToCreate = $this->getActualUsername($userToCreate);
+		$password = $this->getActualPassword($password);
+		if (OcisHelper::isTestingOnOcisOrReva()) {
+			$email = $userToCreate . '@owncloud.org';
+			$bodyTable = new TableNode(
+				[
+					['userid', $userToCreate],
+					['password', $password],
+					['username', $userToCreate],
+					['email', $email]
+				]
+			);
+		} else {
+			$email = null;
+			$bodyTable = new TableNode([['userid', $userToCreate], ['password', $password]]);
+		}
+		$this->ocsContext->userSendsHTTPMethodToOcsApiEndpointWithBody(
+			$user,
+			"POST",
+			"/cloud/users",
+			$bodyTable
+		);
+		$this->addUserToCreatedUsersList(
+			$userToCreate,
+			$password,
+			null,
+			$email,
+			$this->theHTTPStatusCodeWasSuccess()
+		);
+		if (OcisHelper::isTestingOnOcisOrReva()) {
+			OcisHelper::createEOSStorageHome($this->getBaseUrl(), $userToCreate, $password);
+			$this->manuallyAddSkeletonFilesForUser($userToCreate, $password);
+		}
+	}
+
+	/**
 	 * @When /^the administrator sends a user creation request for user "([^"]*)" password "([^"]*)" group "([^"]*)" using the provisioning API$/
 	 *
 	 * @param string $user
@@ -3298,7 +3344,8 @@ trait Provisioning {
 	}
 
 	/**
-	 * @When /^user "([^"]*)" (enables|tries to enable) user "([^"]*)" using the provisioning API$/
+	 * @When /^user "([^"]*)" enables user "([^"]*)" using the provisioning API$/
+	 * @When /^user "([^"]*)" tries to enable user "([^"]*)" using the provisioning API$/
 	 *
 	 * @param string $user
 	 * @param string $anotheruser

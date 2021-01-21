@@ -72,6 +72,16 @@ Feature: enable user
     And the HTTP status code should be "401"
     And user "Brian" should be disabled
 
+  Scenario: normal user tries to enable himself
+    Given these users have been created with default attributes and skeleton files:
+      | username |
+      | Alice    |
+    And user "Alice" has been disabled
+    When user "Alice" tries to enable user "Alice" using the provisioning API
+    Then the OCS status code should be "997"
+    And the HTTP status code should be "401"
+    And user "Alice" should be disabled
+
   @notToImplementOnOCIS
   Scenario: subadmin tries to enable himself
     Given user "subadmin" has been created with default attributes and skeleton files
@@ -83,6 +93,49 @@ Feature: enable user
     Then the OCS status code should be "997"
     And the HTTP status code should be "401"
     And user "subadmin" should be disabled
+
+Scenario: subadmin tries to enable user in their group
+    Given these users have been created with default attributes and skeleton files:
+      | username    |
+      | Alice       |
+      | subadmin    |
+    And group "brand-new-group" has been created
+    And user "Alice" has been added to group "brand-new-group"
+    And user "subadmin" has been made a subadmin of group "brand-new-group"
+    And user "Alice" has been disabled
+    When user "subadmin" tries to enable user "Alice" using the provisioning API
+    Then the OCS status code should be "200"
+    And the HTTP status code should be "200"
+    And user "Alice" should be enabled
+
+  Scenario: subadmin tries to enable user with subadmin permissions in their group
+    Given these users have been created with default attributes and skeleton files:
+      | username    |
+      | Alice       |
+      | subadmin    |
+    And group "brand-new-group" has been created
+    And user "Alice" has been added to group "brand-new-group"
+    And user "subadmin" has been made a subadmin of group "brand-new-group"
+    And user "Alice" has been made a subadmin of group "brand-new-group"
+    And user "Alice" has been disabled
+    When user "subadmin" tries to enable user "Alice" using the provisioning API
+    Then the OCS status code should be "200"
+    And the HTTP status code should be "200"
+    And user "Alice" should be enabled
+
+  Scenario: subadmin tries to enable another subadmin of same group
+    Given these users have been created with default attributes and skeleton files:
+      | username            |
+      | subadmin            |
+      | another-subadmin    |
+    And group "brand-new-group" has been created
+    And user "subadmin" has been made a subadmin of group "brand-new-group"
+    And user "another-subadmin" has been made a subadmin of group "brand-new-group"
+    And user "another-subadmin" has been disabled
+    When user "subadmin" tries to enable user "another-subadmin" using the provisioning API
+    Then the OCS status code should be "997"
+    And the HTTP status code should be "401"
+    And user "another-subadmin" should be disabled
 
   @notToImplementOnOCIS
   Scenario: Making a web request with an enabled user

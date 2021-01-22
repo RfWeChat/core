@@ -82,6 +82,21 @@ Feature: get user groups
     And the HTTP status code should be "401"
     And the API should not return any data
 
+  Scenario: normal user gets the his/her groups
+    Given these users have been created with default attributes and skeleton files:
+      | username |
+      | Alice    |
+    And group "group1" has been created
+    And group "group2" has been created
+    And user "Alice" has been added to group "group1"
+    And user "Alice" has been added to group "group2"
+    When user "Alice" gets all the groups of user "Alice" using the provisioning API
+    Then the OCS status code should be "200"
+    And the HTTP status code should be "200"
+    And the groups returned by the API should be
+      | group1 |
+      | group2 |
+
   @notToImplementOnOCIS
   Scenario: admin gets groups of an user who is not in any groups
     Given user "brand-new-user" has been created with default attributes and skeleton files

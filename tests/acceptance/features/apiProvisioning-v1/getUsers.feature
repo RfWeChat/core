@@ -40,7 +40,8 @@ Feature: get users
     And the OCS status code should be "100"
     And the HTTP status code should be "200"
 
-  Scenario: normal user tries to get other users
+  @issue-38332
+  Scenario: normal user gets all users
     Given these users have been created with default attributes and skeleton files:
       | username         |
       | brand-new-user   |
